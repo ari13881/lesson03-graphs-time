@@ -56,6 +56,43 @@ def section_daily_audience(df: pd.DataFrame) -> None:
 
 
 # ---------------------------------------------------------------------------
+# 구역 2. 일관객 합계 상위 5편 비교
+# ---------------------------------------------------------------------------
+def section_top5_compare(df: pd.DataFrame) -> None:
+    st.header("구역 2. 일관객 합계 상위 5편 비교")
+
+    # 이 기간 일관객 합계가 가장 큰 5편 (큰 순서)
+    top5 = (
+        df.groupby("영화명")["일관객"].sum().sort_values(ascending=False).head(5).index.tolist()
+    )
+    top_df = df[df["영화명"].isin(top5)].sort_values("날짜")
+
+    fig = px.line(
+        top_df,
+        x="날짜",
+        y="일관객",
+        color="영화명",
+        category_orders={"영화명": top5},  # 범례 순서 = 합계 순위
+        title="상위 5편 - 날짜별 일관객",
+    )
+    fig.update_traces(
+        hovertemplate=(
+            "%{fullData.name}<br>날짜: %{x|%Y-%m-%d}<br>일관객: %{y:,}명<extra></extra>"
+        )
+    )
+    fig.update_layout(
+        xaxis_title="날짜",
+        yaxis_title="일관객(명)",
+        legend_title_text="영화 (클릭하면 켜고 끔)",
+        hovermode="closest",
+    )
+    st.plotly_chart(fig, use_container_width=True)
+
+    # ✏️ 아래 문구를 원하는 한 문장으로 바꿔 쓰세요.
+    show_insight("여기에 이 그래프로 알 수 있는 것을 한 문장으로 적어 주세요.")
+
+
+# ---------------------------------------------------------------------------
 # 앞으로 추가할 구역은 위처럼 함수를 하나 만들고,
 # 아래 main()에 호출을 한 줄 추가하면 됩니다.
 # 예) def section_xxx(df): ...
@@ -72,6 +109,9 @@ def main() -> None:
         st.stop()
 
     section_daily_audience(df)
+    st.divider()
+
+    section_top5_compare(df)
     st.divider()
 
     # section_xxx(df)   # ← 다음 구역은 여기에 추가
