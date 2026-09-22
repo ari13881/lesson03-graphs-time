@@ -138,6 +138,46 @@ def section_daily_total(df: pd.DataFrame) -> None:
 
 
 # ---------------------------------------------------------------------------
+# 구역 4. 일관객 합계 TOP 10
+# ---------------------------------------------------------------------------
+def section_top10_bar(df: pd.DataFrame) -> None:
+    st.header("구역 4. 일관객 합계 TOP 10")
+
+    summary = (
+        df.groupby("영화명")
+        .agg(일관객합계=("일관객", "sum"), 순위권일수=("날짜", "count"))
+        .reset_index()
+    )
+    top10 = summary.sort_values("일관객합계", ascending=False).head(10)
+    # 관객이 많은 영화가 위에 오도록 (막대그래프는 아래→위 순서라 오름차순으로 정렬)
+    top10 = top10.sort_values("일관객합계", ascending=True)
+
+    fig = px.bar(
+        top10,
+        x="일관객합계",
+        y="영화명",
+        orientation="h",
+        title="일관객 합계 TOP 10",
+        custom_data=["순위권일수"],
+    )
+    fig.update_traces(
+        hovertemplate=(
+            "%{y}<br>일관객 합계: %{x:,}명<br>10위권에 든 날수: %{customdata[0]}일"
+            "<extra></extra>"
+        )
+    )
+    fig.update_layout(
+        xaxis_title="일관객 합계(명)",
+        yaxis_title="영화명",
+        hovermode="closest",
+    )
+    st.plotly_chart(fig, use_container_width=True)
+
+    # ✏️ 아래 문구를 원하는 한 문장으로 바꿔 쓰세요.
+    show_insight("여기에 이 그래프로 알 수 있는 것을 한 문장으로 적어 주세요.")
+
+
+# ---------------------------------------------------------------------------
 # 앞으로 추가할 구역은 위처럼 함수를 하나 만들고,
 # 아래 main()에 호출을 한 줄 추가하면 됩니다.
 # 예) def section_xxx(df): ...
@@ -162,9 +202,11 @@ def main() -> None:
     section_daily_total(df)
     st.divider()
 
+    section_top10_bar(df)
+    st.divider()
+
     # section_xxx(df)   # ← 다음 구역은 여기에 추가
     # st.divider()
 
 
 main()
-
