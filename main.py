@@ -178,6 +178,46 @@ def section_top10_bar(df: pd.DataFrame) -> None:
 
 
 # ---------------------------------------------------------------------------
+# 구역 5. 월×요일별 일관객 합계 히트맵
+# ---------------------------------------------------------------------------
+def section_month_weekday_heatmap(df: pd.DataFrame) -> None:
+    st.header("구역 5. 월×요일별 일관객 합계")
+
+    tmp = df.copy()
+    tmp["월"] = tmp["날짜"].dt.month
+    tmp["요일"] = tmp["날짜"].dt.weekday  # 0=월요일 ... 6=일요일
+
+    weekday_names = ["월", "화", "수", "목", "금", "토", "일"]
+
+    pivot = (
+        tmp.groupby(["월", "요일"])["일관객"]
+        .sum()
+        .reset_index()
+        .pivot(index="요일", columns="월", values="일관객")
+        .reindex(index=range(7))  # 월~일 순서 고정
+        .fillna(0)
+    )
+    pivot.index = weekday_names
+
+    fig = px.imshow(
+        pivot,
+        color_continuous_scale="Reds",
+        aspect="auto",
+        labels=dict(x="월", y="요일", color="일관객 합계"),
+        title="월 × 요일별 일관객 합계",
+    )
+    fig.update_traces(
+        hovertemplate="월: %{x}월<br>요일: %{y}요일<br>합계: %{z:,}명<extra></extra>"
+    )
+    fig.update_xaxes(dtick=1, title="월")
+    fig.update_yaxes(title="요일")
+    st.plotly_chart(fig, use_container_width=True)
+
+    # ✏️ 아래 문구를 원하는 한 문장으로 바꿔 쓰세요.
+    show_insight("여기에 이 그래프로 알 수 있는 것을 한 문장으로 적어 주세요.")
+
+
+# ---------------------------------------------------------------------------
 # 앞으로 추가할 구역은 위처럼 함수를 하나 만들고,
 # 아래 main()에 호출을 한 줄 추가하면 됩니다.
 # 예) def section_xxx(df): ...
@@ -203,6 +243,9 @@ def main() -> None:
     st.divider()
 
     section_top10_bar(df)
+    st.divider()
+
+    section_month_weekday_heatmap(df)
     st.divider()
 
     # section_xxx(df)   # ← 다음 구역은 여기에 추가
